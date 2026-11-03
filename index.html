@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Il Borgo</title>
+  <link rel="icon" href="data:," />
+  <style>:root{--carta:#f3ead8;--ocra:#b7832f;--ombra:#140e08b8}html,body{touch-action:none;-webkit-user-select:none;user-select:none;background:#8fa9c4;height:100%;margin:0;font-family:Georgia,Times New Roman,serif;overflow:hidden}canvas{display:block}#caricamento,#ingresso{color:var(--carta);background:var(--ombra);text-align:center;box-sizing:border-box;flex-direction:column;justify-content:center;align-items:center;padding:16px;display:flex;position:fixed;inset:0}#caricamento h1,#ingresso h1{letter-spacing:.04em;margin:0 0 18px;font-size:clamp(26px,5vw,44px);font-weight:400}#barra{border:1px solid var(--carta);border-radius:6px;width:min(420px,80vw);height:10px;overflow:hidden}#riempimento{background:var(--ocra);width:0%;height:100%;transition:width .15s}#stato{opacity:.85;margin-top:10px;font-size:15px}#ingresso{cursor:pointer;display:none}#ingresso p{margin:6px 0;font-size:17px}#istruzioni{opacity:.85;max-width:34em;margin-top:14px;font-size:15px;line-height:1.6}#hud{color:#fff;pointer-events:none;white-space:pre;background:#00000073;border-radius:6px;padding:5px 8px;font:12px/1.4 Consolas,monospace;position:fixed;top:10px;left:10px}#zone{color:var(--carta);background:var(--ombra);pointer-events:none;border-radius:6px;padding:6px 10px;font-size:14px;display:none;position:fixed;bottom:12px;right:12px}#mirino{pointer-events:none;background:#fffc;border-radius:50%;width:6px;height:6px;margin:-3px 0 0 -3px;display:none;position:fixed;top:50%;left:50%}#levetta{pointer-events:none;background:#0000002e;border:2px solid #fff9;border-radius:50%;width:120px;height:120px;display:none;position:fixed}#pomello{background:#ffffffb3;border-radius:50%;width:50px;height:50px;position:absolute;top:35px;left:35px}#strumenti{z-index:5;gap:6px;display:flex;position:fixed;top:10px;right:10px}#strumenti button,#segnalazioni button{color:var(--carta);background:var(--ombra);cursor:pointer;border:1px solid #f3ead880;border-radius:6px;padding:7px 11px;font:14px Georgia,serif}#avviso{max-width:90vw;color:var(--carta);background:var(--ombra);z-index:6;pointer-events:none;border-radius:6px;padding:8px 14px;font-size:14px;display:none;position:fixed;top:54px;left:50%;transform:translate(-50%)}#segnalazioni{width:min(520px,100vw - 20px);color:var(--carta);box-sizing:border-box;z-index:10;-webkit-user-select:text;user-select:text;touch-action:auto;background:#1c140ceb;border-radius:8px;padding:10px;display:none;position:fixed;top:52px;bottom:10px;right:10px;overflow-y:auto}#segnalazioni .testa{flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;display:flex}#segnalazioni .testa b{margin-right:auto;font-size:16px}#segnalazioni .voce{border-top:1px solid #f3ead833;gap:8px;padding:8px 0;display:flex}#segnalazioni img{border-radius:4px;flex:none;width:200px;height:auto}#segnalazioni .dati{flex:1;min-width:0;font:12px/1.5 Consolas,monospace}#segnalazioni textarea{box-sizing:border-box;width:100%;min-height:44px;margin:4px 0;font:13px Georgia,serif}#segnalazioni .dati button{margin-right:4px;padding:4px 9px;font-size:13px}@media (width<=560px){#segnalazioni img{width:120px}}</style>
+  <script type="module" crossorigin src="./assets/index-CoZrQd8Z.js"></script>
+</head>
+<body>
+  <div id="caricamento">
+    <h1>Il Borgo</h1>
+    <div id="barra"><div id="riempimento"></div></div>
+    <div id="stato">Caricamento della piazza e della Via Maestra...</div>
+  </div>
+  <div id="ingresso">
+    <h1>Porta Est</h1>
+    <p>Tocca o clicca per entrare nel borgo</p>
+    <div id="istruzioni">W A S D o frecce per camminare &middot; mouse per guardare &middot; Maiusc per correre &middot; Esc per uscire<br />
+      P salva una segnalazione (posizione + screenshot) &middot; L apre l'elenco</div>
+  </div>
+  <div id="levetta-zona" style="display:none"></div>
+  <div id="levetta"><div id="pomello"></div></div>
+  <div id="mirino"></div>
+  <div id="zone"></div>
+  <div id="strumenti"><button id="btn-segnala" title="Salva posizione e screenshot (P)">Segnala</button>
+    <button id="btn-elenco" title="Elenco delle segnalazioni (L)">Elenco</button></div>
+  <div id="avviso"></div>
+  <div id="segnalazioni"></div>
+  <div id="hud"></div>
+</body>
+</html>
