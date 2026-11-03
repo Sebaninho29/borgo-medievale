@@ -645,7 +645,8 @@ def crea_materiali():
 
 TELI = [((0.45, 0.04, 0.03), (0.75, 0.68, 0.52)), ((0.08, 0.22, 0.08), (0.75, 0.68, 0.52)),
         ((0.05, 0.1, 0.3), (0.6, 0.4, 0.08)), ((0.6, 0.38, 0.08), (0.75, 0.68, 0.52)),
-        ((0.25, 0.03, 0.05), (0.75, 0.68, 0.52)), ((0.75, 0.68, 0.52), None)]
+        ((0.25, 0.03, 0.05), (0.75, 0.68, 0.52)),
+        ((0.08, 0.22, 0.08), (0.6, 0.4, 0.08))]   # verde e ocra (prima crema tinta unita): l'unica coppia nuova in piazza
 
 # ----------------------------------------------------------------------
 #  GEOMETRIA DI BASE (bmesh)
@@ -2517,6 +2518,9 @@ def chiesa(M, coll):
     box(det, (-0.03, 0.8, 0.0), (0.03, 0.85, 5.0), I['legno_travi'])
     for i in range(3):
         box(det, (-3.0 + 0.3 * i, -1.8 + 0.4 * i, 0.0), (3.0 - 0.3 * i, -0.5, 0.16 * (i + 1)), pc)
+    # soglia del portale a filo dello zoccolo (60 cm, uno scalino di 12 cm sopra l'ultimo gradino): senza, il vano
+    # strombato restava a terra, 60 cm sotto lo zoccolo, e nel sito il giocatore ci cadeva senza poter risalire
+    box(det, (-1.42, -0.52, 0.0), (1.42, 0.86, 0.6), pc)
     # rosone: vetro, ghiera a due anelli, mozzo, raggi e anello intermedio
     Mr = lambda y: T(0, y, zro) @ RX(math.radians(90))
     lathe(det, [(rro, 0.0), (rro, 0.02)], 32, I['vetro'], Mr(0.55))

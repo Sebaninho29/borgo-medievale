@@ -2,6 +2,8 @@
 // Coordinate: il glTF di Blender ha Y in alto, quindi (x, y, z) Blender -> (x, z, -y) qui.
 import * as THREE from 'three';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
+import { SunLight } from 'three/examples/jsm/lights/SunLight.js';
+import { OmbraSole } from './ombre.js';
 import { Citta, uniformiAO, opzioniTexture, uniformiVento, VENTO } from './citta.js';
 import { uniformiAcqua, creaSchizzi } from './fontana.js';
 import { Giocatore } from './giocatore.js';
@@ -18,10 +20,15 @@ const PARTENZA = [127, 15.6];                         // sul ponte fuori dalla P
 const LUCE = { sole: 4.0, cielo: 0.45, rimbalzo: 0.8, esposizione: 1.0 };
 const PRESET = {                                      // ?q=basso | medio | alto
   // alberi = distanza (m) entro cui gli alberi sono modelli veri (oltre: impostori); ?alberi=0 solo impostori
+  // ombra = lato in pixel di OGNUNA delle due cascate del sole (vedi OMBRE)
   basso: { pixel: 1.0, ombra: 1024, msaa: 0, n8ao: false, tex512: true, alberi: 15 },
   medio: { pixel: 1.25, ombra: 2048, msaa: 4, n8ao: false, tex512: false, alberi: 30 },
-  alto:  { pixel: 2.0, ombra: 4096, msaa: 4, n8ao: true, tex512: false, alberi: 45 },
+  alto:  { pixel: 2.0, ombra: 3072, msaa: 4, n8ao: true, tex512: false, alberi: 45 },
 };
+// ombre del sole (src/ombre.js): cascata vicina fino a 'vicino' m di profondita' di vista, cascata lontana = quadrato
+// di 'lontano' m spostato 'avanti' m verso lo sguardo; raggio = morbidezza del bordo in texel (filtro PCF);
+// bias in profondita' e lungo la normale contro le striature sulle superfici in luce (tele comprese)
+const OMBRE = { vicino: 10, lontano: 100, avanti: 20, raggio: 2.5, bias: -0.0002, normalBias: 0.02 };
 // vento: tutti i parametri (direzione, VENTO.forza che scala tutte le ampiezze, riduzioni) stanno in citta.js
 // =======================================================================
 
@@ -46,11 +53,13 @@ scena.fog = new THREE.FogExp2(0xcbd5df, 0.0018);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 2500);
 const az = THREE.MathUtils.degToRad(SOLE_AZIMUT), al = THREE.MathUtils.degToRad(SOLE_ALTEZZA);
 const dirSole = daBlender(Math.cos(al) * Math.cos(az), Math.cos(al) * Math.sin(az), Math.sin(al)).normalize();
-const sole = new THREE.DirectionalLight(0xffecd2, LUCE.sole);
-sole.castShadow = true; sole.shadow.mapSize.set(qualita.ombra, qualita.ombra);
-Object.assign(sole.shadow.camera, { left: -50, right: 50, top: 50, bottom: -50, near: 1, far: 260 });
-sole.shadow.bias = -0.0004; sole.shadow.normalBias = 0.03;
-scena.add(sole, sole.target);
+// SunLight: luce direzionale (dalla sua posizione verso l'origine) con ombre a cascate, vedi OmbraSole
+const sole = new SunLight(0xffecd2, LUCE.sole);
+sole.position.copy(dirSole).multiplyScalar(100);
+sole.castShadow = true; sole.shadow.dispose(); sole.shadow = new OmbraSole(OMBRE);
+sole.shadow.mapSize.set(qualita.ombra, qualita.ombra);
+Object.assign(sole.shadow, { radius: OMBRE.raggio, bias: OMBRE.bias, normalBias: OMBRE.normalBias });
+scena.add(sole);
 const rimbalzo = new THREE.HemisphereLight(0xdfe6ee, 0xb08a62, LUCE.rimbalzo);   // cielo chiaro, terra calda
 scena.add(rimbalzo);
 const { composer, gradazione } = creaComposer(renderer, scena, camera, qualita);
@@ -118,6 +127,9 @@ function caricaCielo() {
 // --- avvio: centro subito, il resto in background ----------------------
 opzioniTexture.anisotropia = Math.min(renderer.capabilities.getMaxAnisotropy(), qualita.tex512 ? 4 : 8);
 const citta = new Citta(scena, BASE + 'citta/', qualita.tex512);
+// le copie per le ombre a tessere (citta.ombre) esistono solo per le mappe delle ombre, non per la vista
+const disegnaOmbre = renderer.shadowMap.render.bind(renderer.shadowMap);
+renderer.shadowMap.render = (...a) => { citta.ombre.visible = true; disegnaOmbre(...a); citta.ombre.visible = false; };
 const giocatore = new Giocatore(camera, renderer.domElement, ALTEZZA_OCCHI, daBlender(...PARTENZA, ALTEZZA_OCCHI));
 giocatore.collisori = citta.collisori;
 camera.position.copy(giocatore.pos); camera.rotation.set(0, Math.PI / 2, 0, 'YXZ');   // verso la porta
@@ -175,6 +187,12 @@ async function avvia() {
   zoneTesto.style.display = 'none';
   window.__tutto = { zone: citta.zoneCaricate, oggetti };
   window.__alberi = () => ({ vicini: citta.alberiVicini, distanza: citta.distanzaAlberi });
+  // ?trappole: controllo automatico dei punti da cui il giocatore non esce (src/trappole.js), risultato in __trappole
+  if (parametri.has('trappole')) {
+    const { cercaTrappole } = await import('./trappole.js');
+    window.__trappole = await cercaTrappole(citta.collisori, giocatore.partenza, (t) => { zoneTesto.style.display = 'block'; zoneTesto.textContent = 'Trappole: ' + t; });
+    zoneTesto.style.display = 'none';
+  }
   controllaDa = performance.now() + 3000;
 }
 
@@ -192,7 +210,6 @@ function ciclo(t) {
     camera.position.copy(p); camera.lookAt(q.x, p.y, q.z);
     if (u >= 1) finisciBench();
   } else if (attivo || (BENCH && !fermo)) giocatore.aggiorna(dt);
-  sole.target.position.copy(camera.position); sole.position.copy(camera.position).addScaledVector(dirSole, 120);
   citta.aggiornaAlberi(camera.position, dt);
   if (registra) uniformiVento.uTempo.value += registra.passo;   // test: tempo a passo fisso fra i fotogrammi salvati
   else if (!ventoFermo) uniformiVento.uTempo.value += dt;

@@ -334,14 +334,35 @@ function materialeTintaUnita() {
 const aTintaUnita = (m) => !m.map && !m.transparent && !m.emissiveMap && m.emissive.getHex() === 0 &&
   !(m.name || '').startsWith('vetro') && m.color;
 
-function nuovaMesh(geo, mat, nome) {
+// Ombre "a tessere": le mesh della citta' sono riunite per materiale e quadrante (poche draw call), ma cosi' ogni cascata
+// delle ombre del sole (src/ombre.js) disegnava quasi tutto il borgo anche quando copre 30 m. I materiali fermi e opachi
+// fanno ombra con copie della sola geometria riunite per TESSERA_OMBRE m (tutti i materiali insieme, una mesh per
+// tessera e lato): ogni cascata disegna solo le tessere che tocca. Il gruppo citta.ombre e' visibile solo mentre si
+// disegnano le mappe delle ombre (main.js). Le tele col vento restano mesh normali (si piegano anche nell'ombra).
+const TESSERA_OMBRE = 25;
+const ombraTessere = (mat) => fasombra(mat) && !mat.transparent && !mat.alphaTest;
+// il vento c'e' solo dove l'attributo ao porta un tipo di tela (canale B = tipo / 8, 1-6): il resto della tinta unita
+// (frutta, fiori, ferri...) e' fermo e va nelle tessere
+function ventosa(g) {
+  const ao = g.attributes.ao; if (!ao || ao.itemSize < 4) return false;
+  for (let i = 0; i < ao.count; i++) { const t = ao.getZ(i); if (t > 0.06 && t < 0.9) return true; }
+  return false;
+}
+const matOmbra = {};   // lato -> materiale (solo per side/shadowSide: la profondita' la scrive MeshDepthMaterial)
+function materialeOmbra(mat) {
+  const k = mat.side + '|' + mat.shadowSide;
+  return matOmbra[k] || (matOmbra[k] = new THREE.MeshBasicMaterial({ side: mat.side, shadowSide: mat.shadowSide }));
+}
+
+function nuovaMesh(geo, mat, nome, tessere = false) {
   const mesh = new THREE.Mesh(geo, mat);
-  mesh.castShadow = fasombra(mat); mesh.receiveShadow = true; mesh.name = nome;
+  mesh.castShadow = fasombra(mat) && !tessere; mesh.receiveShadow = true; mesh.name = nome;
+  mesh.userData.tessere = tessere;   // l'ombra la fanno le copie in citta.ombre
   if (mat.userData.vento) mesh.customDepthMaterial = materialeProfonditaVento();
   return mesh;
 }
 
-function unisciZona(radice, nomeZona) {
+function unisciZona(radice, nomeZona, ombre) {
   radice.updateMatrixWorld(true);
   const gruppi = new Map(), mNor = new THREE.Matrix3(), c = new THREE.Vector3();
   radice.traverse((o) => {
@@ -364,12 +385,21 @@ function unisciZona(radice, nomeZona) {
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
       mat = materialeTintaUnita();
     }
-    const k = mat.uuid + '|' + q;
-    (gruppi.get(k) || gruppi.set(k, { mat, q, geos: [] }).get(k)).geos.push(g);
+    const tessere = ombraTessere(mat) && !(mat.userData.vento && ventosa(g));
+    const k = mat.uuid + '|' + q + (tessere ? '|t' : '');
+    (gruppi.get(k) || gruppi.set(k, { mat, q, tessere, geos: [] }).get(k)).geos.push(g);
+    if (tessere) {   // copia per le ombre a tessere (solo posizioni e indici)
+      const mo = materialeOmbra(mat);
+      const kt = `${Math.floor(c.x / TESSERA_OMBRE)}_${Math.floor(c.z / TESSERA_OMBRE)}|${mo.uuid}`;
+      const go = new THREE.BufferGeometry();
+      go.setAttribute('position', g.attributes.position);
+      go.setIndex(g.index || [...Array(g.attributes.position.count).keys()]);
+      (ombre.get(kt) || ombre.set(kt, { mo, geos: [] }).get(kt)).geos.push(go);
+    }
   });
   const gruppo = new THREE.Group(); gruppo.name = nomeZona;
-  for (const { mat, q, geos } of gruppi.values()) {
-    const m = nuovaMesh(unisci(geos), mat, `${nomeZona}:${q}:${mat.name}`);
+  for (const { mat, q, tessere, geos } of gruppi.values()) {
+    const m = nuovaMesh(unisci(geos), mat, `${nomeZona}:${q}:${mat.name}`, tessere);
     m.userData.quadrante = q; gruppo.add(m);
     geos.forEach((g) => g.dispose());
   }
@@ -378,6 +408,7 @@ function unisciZona(radice, nomeZona) {
 
 export class Citta {
   constructor(scena, base, texRidotte) {
+    this.ombre = new THREE.Group(); this.ombre.name = 'ombre_tessere'; this.ombre.visible = false; scena.add(this.ombre);
     this.scena = scena; this.base = base; this.collisori = []; this.zoneCaricate = 0; this.gruppiZone = [];
     this.materiali = new Map(); this.alberi = new Map(); this.matChioma = {}; this.distanzaAlberi = 0; this.alberiVicini = 0;
     const gestore = new THREE.LoadingManager();
@@ -405,7 +436,13 @@ export class Citta {
         this.materiali.set(o.material.name, o.material);
         condividiTexture(o.material); acqua(o.material); vetri(o.material); schiarisci(o.material); interni(o.material); conAO(o.material);
       });
-      const zona = unisciZona(gltf.scene, z.nome);
+      const tessere = new Map();
+      const zona = unisciZona(gltf.scene, z.nome, tessere);
+      for (const [k, { mo, geos }] of tessere) {
+        const m = new THREE.Mesh(geos.length > 1 ? mergeGeometries(geos, false) : geos[0], mo);
+        m.castShadow = true; m.receiveShadow = false; m.name = `ombra:${z.nome}:${k.split('|')[0]}`; m.raycast = () => {};
+        m.geometry.computeBoundingSphere(); this.ombre.add(m);
+      }
       this.scena.add(zona); this.gruppiZone.push(zona);
       this.collisori.push(geometriaCollisione(zona));
       this.zoneCaricate++;
@@ -417,13 +454,13 @@ export class Citta {
   finalizza() {
     const gruppi = new Map();
     for (const zona of this.gruppiZone) for (const m of zona.children) {
-      const k = m.material.uuid + '|' + m.userData.quadrante;
-      (gruppi.get(k) || gruppi.set(k, { mat: m.material, q: m.userData.quadrante, meshes: [] }).get(k)).meshes.push(m);
+      const t = m.userData.tessere, k = m.material.uuid + '|' + m.userData.quadrante + (t ? '|t' : '');
+      (gruppi.get(k) || gruppi.set(k, { mat: m.material, q: m.userData.quadrante, t, meshes: [] }).get(k)).meshes.push(m);
     }
     const citta = new THREE.Group(); citta.name = 'citta';
-    for (const { mat, q, meshes } of gruppi.values()) {
+    for (const { mat, q, t, meshes } of gruppi.values()) {
       const geo = meshes.length === 1 ? meshes[0].geometry : unisci(meshes.map((m) => m.geometry));
-      citta.add(nuovaMesh(geo, mat, `citta:${q}:${mat.name}`));
+      citta.add(nuovaMesh(geo, mat, `citta:${q}:${mat.name}`, t));
       if (meshes.length > 1) meshes.forEach((m) => m.geometry.dispose());
     }
     for (const zona of this.gruppiZone) this.scena.remove(zona);

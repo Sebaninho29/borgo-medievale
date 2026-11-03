@@ -97,10 +97,36 @@ Animata come il vento, tutto negli shader (`src/fontana.js`, agganciato ai mater
 - Test: `__vento()` riporta anche `acqua` e `schizzi`; `__vento({ lento: true })` impone gli fps bassi, `null` torna
   automatico. Anteprime e misure in `anteprime\fontana\`.
 
+## Ombre del sole
+`SunLight` di three r186 con due cascate e `OmbraSole` (`src/ombre.js`), parametri in `OMBRE` in cima a `src/main.js`:
+- cascata vicina: la fetta di vista fino a 10 m di profondita' in una sfera di raggio fisso (stabile girando la testa),
+  ~1,5 cm per texel nel preset medio (prima un solo riquadro di +-50 m: 4,9 cm per texel);
+- cascata lontana: quadrato di 100 m spostato 20 m verso lo sguardo (come il vecchio riquadro, che era centrato);
+- centri agganciati alla griglia dei texel (le ombre non "nuotano" camminando), bordo morbido (PCF, raggio 2,5 texel),
+  bias -0,0002 / normale 0,02, sfumatura fra le cascate. Gli stendardi del Palazzo Comunale nel vento: prima i bordi
+  dell'ombra cambiavano forma a scalini da un fotogramma all'altro, ora restano netti e stabili (`anteprime\ombre\`).
+- Ombre a tessere (`citta.js`): le mesh della citta' sono riunite per materiale e quadrante, cosi' ogni cascata disegnava
+  quasi tutto il borgo. I materiali fermi e opachi fanno ombra con copie della sola geometria per tessere di 25 m
+  (`citta.ombre`, visibili solo mentre si disegnano le mappe delle ombre); restano mesh normali solo le parti col vento.
+- Costo (2026-11-03, RTX 2060, 3840x2160 medio, mediana di 3 caricamenti alterni contro il sito pubblicato):
+  palazzo 8,3 / 8,4 ms, piazza 9,2 / 9,0, Via Maestra 12,9 / 11,9, sagrato 10,1 / 10,0, borgo 10,6 / 10,7,
+  mura 9,5 / 10,8 (nuovo / prima; rumore fra caricamenti ~1 ms); +25-70 draw call (passaggi di sola profondita').
+
+## Trappole (punti da cui il giocatore non esce)
+`?trappole` (con `?bench`, meglio `q=basso`): a borgo caricato `src/trappole.js` controlla tutto il borgo (~25 s) e mette
+il risultato in `window.__trappole`. Griglia di colonne ogni 25 cm (mura, fossato e ponti compresi): per ogni colonna i
+pavimenti su cui la capsula del giocatore sta in piedi; da un pavimento si passa alla colonna vicina se si sale al massimo
+30 cm (la capsula ha raggio 32 cm: oltre non sale) o si scende (anche saltando giu' da un bordo). Trappole = pavimenti
+raggiungibili dalla partenza da cui non si torna alla partenza, riunite in gruppi; ogni gruppo si verifica con la fisica
+vera del giocatore (`passoCapsula` di `src/giocatore.js`: corsa e passo in 16 direzioni da 4 punti) e se un tentativo
+esce e' un falso allarme. Diagnosi: `__sondaTrappole(x, y)` (pavimenti di una colonna), `__raggioTrappole(x, y)`.
+- 2026-11-03: sui dati vecchi trovava solo il vano del portale della chiesa (1,1 m2, 60 cm sotto lo zoccolo), ora
+  chiuso dalla soglia nel generatore; sul borgo corretto 0 trappole su ~26.500 m2 percorribili.
+
 ## Qualita'
-- basso: texture 512 px, ombre 1024, niente antialiasing, alberi veri entro 15 m
-- medio: texture 1k, ombre 2048, MSAA 4x, alberi veri entro 30 m
-- alto: come medio + ombre 4096 + occlusione ambientale in tempo reale (N8AO), alberi veri entro 45 m
+- basso: texture 512 px, ombre 2 x 1024, niente antialiasing, alberi veri entro 15 m
+- medio: texture 1k, ombre 2 x 2048, MSAA 4x, alberi veri entro 30 m
+- alto: come medio + ombre 2 x 3072 + occlusione ambientale in tempo reale (N8AO), alberi veri entro 45 m
 Sempre: AO cotta (vertici), luce di rimbalzo calda, tone mapping AgX, correzione colore calda e contrastata.
 
 ## File

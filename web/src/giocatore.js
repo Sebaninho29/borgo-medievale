@@ -14,7 +14,7 @@ export class Giocatore {
     this.controlli = new PointerLockControls(camera, elemento);
     addEventListener('keydown', (e) => { this.tasti[e.code] = true; });
     addEventListener('keyup', (e) => { this.tasti[e.code] = false; });
-    this._v = new THREE.Vector3(); this._v2 = new THREE.Vector3(); this._box = new THREE.Box3(); this._seg = new THREE.Line3();
+    this._v = new THREE.Vector3(); this._v2 = new THREE.Vector3(); this._mossa = new THREE.Vector3();
   }
 
   // comandi touch: meta' sinistra = levetta, meta' destra = sguardo
@@ -59,40 +59,50 @@ export class Giocatore {
   aggiorna(dt) { for (let i = 0; i < 4; i++) this._passo(dt / 4); this.camera.position.copy(this.pos); }
 
   _passo(dt) {
-    const { _v, _v2, _box, _seg } = this, t = this.tasti;
-    this.vel.y += this.aTerra ? 0 : dt * GRAVITA;
-    this.pos.addScaledVector(this.vel, dt);
+    const { _v, _v2 } = this, t = this.tasti;
     let avanti = (t.KeyW || t.ArrowUp ? 1 : 0) - (t.KeyS || t.ArrowDown ? 1 : 0) + this.levetta.y;
     let lato = (t.KeyD || t.ArrowRight ? 1 : 0) - (t.KeyA || t.ArrowLeft ? 1 : 0) + this.levetta.x;
     const intensita = Math.min(1, Math.hypot(avanti, lato));
+    const mossa = this._mossa.set(0, 0, 0);
     if (intensita > 0.05) {
       const v = (t.ShiftLeft || t.ShiftRight || this.levetta.length() > 0.95) ? CORSA : VELOCITA;
       this.camera.getWorldDirection(_v); _v.y = 0; _v.normalize();
       _v2.crossVectors(_v, this.camera.up).normalize();
-      this.pos.add(_v.multiplyScalar(avanti).addScaledVector(_v2, lato).normalize().multiplyScalar(v * intensita * dt));
+      mossa.copy(_v.multiplyScalar(avanti).addScaledVector(_v2, lato).normalize().multiplyScalar(v * intensita));
     }
-    _seg.copy(this.segmento); _seg.start.add(this.pos); _seg.end.add(this.pos);
-    _box.makeEmpty(); _box.expandByPoint(_seg.start); _box.expandByPoint(_seg.end);
-    _box.min.addScalar(-RAGGIO); _box.max.addScalar(RAGGIO);
-    for (const geo of this.collisori) {
-      if (!geo.boundingBox.intersectsBox(_box)) continue;
-      geo.boundsTree.shapecast({
-        intersectsBounds: (b) => b.intersectsBox(_box),
-        intersectsTriangle: (tri) => {
-          const d = tri.closestPointToSegment(_seg, _v, _v2);
-          if (d < RAGGIO) {
-            const dir = _v2.sub(_v).normalize();
-            _seg.start.addScaledVector(dir, RAGGIO - d); _seg.end.addScaledVector(dir, RAGGIO - d);
-          }
-        },
-      });
-    }
-    const delta = _v.subVectors(_seg.start, this.pos);
-    this.aTerra = delta.y > Math.abs(dt * this.vel.y * 0.25);
-    const off = Math.max(0, delta.length() - 1e-5); delta.normalize().multiplyScalar(off);
-    this.pos.add(delta);
-    if (!this.aTerra) { delta.normalize(); this.vel.addScaledVector(delta, -delta.dot(this.vel)); }
-    else this.vel.set(0, 0, 0);
+    passoCapsula(this, mossa, dt, this.collisori);
     if (this.pos.y < -10) { this.pos.copy(this.partenza); this.vel.set(0, 0, 0); }
   }
 }
+
+// Un passo di fisica della capsula (gravita', spostamento orizzontale 'mossa' in m/s, spinta fuori dai triangoli).
+// stato = { pos (occhi), vel, aTerra, segmento }: lo usano il giocatore e il controllo delle trappole (trappole.js).
+const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _box = new THREE.Box3(), _seg = new THREE.Line3();
+export function passoCapsula(stato, mossa, dt, collisori) {
+  stato.vel.y += stato.aTerra ? 0 : dt * GRAVITA;
+  stato.pos.addScaledVector(stato.vel, dt);
+  stato.pos.addScaledVector(mossa, dt);
+  _seg.copy(stato.segmento); _seg.start.add(stato.pos); _seg.end.add(stato.pos);
+  _box.makeEmpty(); _box.expandByPoint(_seg.start); _box.expandByPoint(_seg.end);
+  _box.min.addScalar(-RAGGIO); _box.max.addScalar(RAGGIO);
+  for (const geo of collisori) {
+    if (!geo.boundingBox.intersectsBox(_box)) continue;
+    geo.boundsTree.shapecast({
+      intersectsBounds: (b) => b.intersectsBox(_box),
+      intersectsTriangle: (tri) => {
+        const d = tri.closestPointToSegment(_seg, _v, _v2);
+        if (d < RAGGIO) {
+          const dir = _v2.sub(_v).normalize();
+          _seg.start.addScaledVector(dir, RAGGIO - d); _seg.end.addScaledVector(dir, RAGGIO - d);
+        }
+      },
+    });
+  }
+  const delta = _v.subVectors(_seg.start, stato.pos);
+  stato.aTerra = delta.y > Math.abs(dt * stato.vel.y * 0.25);
+  const off = Math.max(0, delta.length() - 1e-5); delta.normalize().multiplyScalar(off);
+  stato.pos.add(delta);
+  if (!stato.aTerra) { delta.normalize(); stato.vel.addScaledVector(delta, -delta.dot(stato.vel)); }
+  else stato.vel.set(0, 0, 0);
+}
+export const FISICA = { VELOCITA, CORSA, RAGGIO };
