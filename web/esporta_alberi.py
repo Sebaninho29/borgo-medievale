@@ -9,7 +9,7 @@
 #    sotto la chioma): da sotto non si vedono piu' due piani incrociati ma tante foglie a strati.
 #  - cespugli: la mesh vera (foglie modellate, opache) decimata.
 # Uso:
-#   "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "%USERPROFILE%\Documents\Blender\Quartiere_Mercato\quartiere_mercato.blend" --python web\esporta_alberi.py
+#   "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "D:\Quartiere_Mercato\Blender\quartiere_mercato.blend" --python web\esporta_alberi.py
 #   poi: npm run alberi   (meshopt, texture WebP 1k e 512 px)
 import bpy, bmesh, os, json, math, random, time, shutil
 import numpy as np

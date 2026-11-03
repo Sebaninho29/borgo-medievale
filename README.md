@@ -20,6 +20,6 @@ La scena `.blend`, le texture e i modelli Poly Haven (CC0, si riscaricano da pol
 
 ## Rifare tutto
 1. Scena: `blender --background --python genera_quartiere.py` (Blender 5.2; texture in
-   `%USERPROFILE%\Documents\Blender\Quartiere_Mercato\textures`).
+   `D:\Quartiere_Mercato\Blender\textures`).
 2. Web: esportazione e compressione come in `web/README.md`, poi `npm install` e `npm run build` in `web/`.
 3. Pubblicazione: `bash web/strumenti/pubblica_pages.sh` (copia `web/dist` sul ramo `gh-pages`).

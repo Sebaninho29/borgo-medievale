@@ -8,10 +8,10 @@ Priorita' assoluta: resa estetica.
 
 ## File
 - `genera_quartiere.py` - generatore procedurale. Ricostruisce TUTTA la scena da zero ogni volta.
-  Parametri in cima al file. Salva in `%USERPROFILE%\Documents\Blender\Quartiere_Mercato\quartiere_mercato.blend`.
+  Parametri in cima al file. Salva in `D:\Quartiere_Mercato\Blender\quartiere_mercato.blend`.
 - `pianta_quartiere.png` - pianta approvata (coordinate in metri, 1 m = 1 unita' Blender,
   origine al centro della fontana, nord = +Y, est = +X).
-- Texture Poly Haven (CC0) gia' scaricate in `%USERPROFILE%\Documents\Blender\Quartiere_Mercato\textures`.
+- Texture Poly Haven (CC0) gia' scaricate in `D:\Quartiere_Mercato\Blender\textures`.
 
 ## Comandi
 - Generare la scena (con interfaccia):
@@ -19,7 +19,7 @@ Priorita' assoluta: resa estetica.
 - Generare senza interfaccia (piu' veloce, per i test):
   `"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --python genera_quartiere.py`
 - Render di controllo dal file salvato (frame 1, camera attiva):
-  `"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "%USERPROFILE%\Documents\Blender\Quartiere_Mercato\quartiere_mercato.blend" --render-output //anteprima_ --render-format JPEG --render-frame 1`
+  `"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "D:\Quartiere_Mercato\Blender\quartiere_mercato.blend" --render-output //anteprima_ --render-format JPEG --render-frame 1`
   (per anteprime rapide abbassare CAMPIONI e risoluzione nei parametri)
 
 ## Architettura dello script (da rispettare)

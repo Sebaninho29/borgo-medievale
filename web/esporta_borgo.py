@@ -4,7 +4,7 @@ esporta_borgo.py  -  Fase 2, passo 2: esporta la citta' intera per il web, divis
 
 Apre il .blend del borgo senza salvarlo e scrive in web/_esportazione/citta e web/public/citta:
     "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background
-        "%USERPROFILE%\\Documents\\Blender\\Quartiere_Mercato\\quartiere_mercato.blend" --python web\\esporta_borgo.py
+        "D:\\Quartiere_Mercato\\Blender\\quartiere_mercato.blend" --python web\\esporta_borgo.py
 poi "npm run citta" comprime (meshopt, WebP) in web/public/citta.
 
 Passi:

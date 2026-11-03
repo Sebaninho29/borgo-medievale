@@ -1,7 +1,7 @@
 // Playwright (browser_run_code_unsafe con filename): per ogni vista sfondo senza alberi, impostore, albero vero.
 // Tinte di prova in window.__provaTinte (impostate prima) -> applicate con __chioma. Scrive in anteprime/alberi/taratura.
 async (page) => {
-  const DIR = 'C:/Users/sebas/Downloads/Quartiere_Mercato/anteprime/alberi/taratura/';
+  const DIR = 'D:/Quartiere_Mercato/anteprime/alberi/taratura/';
   const viste = [
     ['olivo_sud', 169.6, -162.7, 1.7, 0, 6],
     ['olivo_nord', 169.6, -138.7, 1.7, 180, 6],

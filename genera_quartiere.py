@@ -4,7 +4,7 @@ genera_quartiere.py  -  Quartiere medievale con piazza del mercato
 Blender 5.x  -  Cycles  -  texture Poly Haven (CC0)
 
 USO DAL PROMPT DEI COMANDI:
-    "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --python "%USERPROFILE%\\Downloads\\genera_quartiere.py"
+    "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --python "D:\\Quartiere_Mercato\\genera_quartiere.py"
 
 Oppure in Blender: Scripting > Apri > genera_quartiere.py > Esegui (Alt+P).
 Modifica i PARAMETRI qui sotto e rilancia: la scena viene ricostruita da zero.
@@ -16,7 +16,7 @@ from mathutils.bvhtree import BVHTree
 
 # ============================== PARAMETRI ==============================
 SEED          = 11            # cambia per ottenere un quartiere diverso
-CARTELLA      = os.path.join(os.path.expanduser("~"), "Documents", "Blender", "Quartiere_Mercato")
+CARTELLA      = r"D:\Quartiere_Mercato\Blender"   # scena .blend, textures/ e modelli/ insieme (//textures relativo)
 TEXTURE       = os.path.join(CARTELLA, "textures")
 MODELLI       = os.path.join(CARTELLA, "modelli")    # modelli Poly Haven (glTF) di alberi e cespugli
 PIAZZA_X      = 17.0          # mezza larghezza della piazza (m)

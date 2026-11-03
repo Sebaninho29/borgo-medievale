@@ -24,3 +24,6 @@ Thumbs.db
 desktop.ini
 __pycache__/
 *.pyc
+
+# Cartella di Blender (scena, texture, modelli, render): pesante, non va nel repository
+Blender/

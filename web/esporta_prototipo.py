@@ -5,7 +5,7 @@ esporta_prototipo.py  -  Fase 2, passo 1: esporta piazza e Via Maestra in glTF (
 Apre il .blend del borgo in sola lettura (non lo salva mai) e scrive web/_esportazione/prototipo.glb;
 poi "npm run modello" lo comprime (meshopt) in web/public/modelli/prototipo.glb:
     "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background
-        "%USERPROFILE%\\Documents\\Blender\\Quartiere_Mercato\\quartiere_mercato.blend" --python web\\esporta_prototipo.py
+        "D:\\Quartiere_Mercato\\Blender\\quartiere_mercato.blend" --python web\\esporta_prototipo.py
 
 Cosa fa:
 - tiene solo gli oggetti della zona (piazza + corridoio della Via Maestra fino alla Porta Est);

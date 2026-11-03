@@ -8,7 +8,7 @@ La scena Blender non viene mai modificata: tutto cio' che serve al web sta in qu
 1. Esportazione da Blender (zone, case interne semplificate con finestre dipinte, alberi come impostori,
    occlusione ambientale cotta nei colori dei vertici, materiali semplificati):
 
-       "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "%USERPROFILE%\Documents\Blender\Quartiere_Mercato\quartiere_mercato.blend" --python web\esporta_borgo.py
+       "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "D:\Quartiere_Mercato\Blender\quartiere_mercato.blend" --python web\esporta_borgo.py
 
    scrive `_esportazione/citta/<zona>/` e `public/citta/citta.json` + `public/citta/impostori/` (~1 minuto).
 2. Compressione (geometria meshopt, texture WebP condivise fra le zone, copia a 512 px):
@@ -23,7 +23,7 @@ La scena Blender non viene mai modificata: tutto cio' che serve al web sta in qu
    (citta.js, in coordinate di mondo, come i nodi di genera_quartiere.py).
 3. Alberi veri da vicino (dopo il punto 1, ~1 minuto):
 
-       "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "%USERPROFILE%\Documents\Blender\Quartiere_Mercato\quartiere_mercato.blend" --python web\esporta_alberi.py
+       "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background "D:\Quartiere_Mercato\Blender\quartiere_mercato.blend" --python web\esporta_alberi.py
        npm run alberi
 
    Per ogni variante: tronco e rami dei modelli Poly Haven decimati (i rametti piu' piccoli, dentro la chioma, tolti),
