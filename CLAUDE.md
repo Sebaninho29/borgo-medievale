@@ -1,3 +1,5 @@
+Rispondi sempre in italiano.
+
 # Progetto: Quartiere medievale (Blender 5.2, Python)
 
 ## Obiettivo
