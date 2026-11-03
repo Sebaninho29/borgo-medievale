@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Il Borgo</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root { --carta: #f3ead8; --ocra: #b7832f; --ombra: rgba(20, 14, 8, 0.72); }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #8fa9c4; font-family: Georgia, "Times New Roman", serif;
+      touch-action: none; -webkit-user-select: none; user-select: none; }
+    canvas { display: block; }
+    #caricamento, #ingresso { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; color: var(--carta); background: var(--ombra); text-align: center; padding: 16px; box-sizing: border-box; }
+    #caricamento h1, #ingresso h1 { font-weight: normal; letter-spacing: 0.04em; margin: 0 0 18px; font-size: clamp(26px, 5vw, 44px); }
+    #barra { width: min(420px, 80vw); height: 10px; border: 1px solid var(--carta); border-radius: 6px; overflow: hidden; }
+    #riempimento { height: 100%; width: 0%; background: var(--ocra); transition: width 0.15s; }
+    #stato { margin-top: 10px; font-size: 15px; opacity: 0.85; }
+    #ingresso { display: none; cursor: pointer; }
+    #ingresso p { margin: 6px 0; font-size: 17px; }
+    #istruzioni { margin-top: 14px; font-size: 15px; opacity: 0.85; line-height: 1.6; max-width: 34em; }
+    #hud { position: fixed; top: 10px; left: 10px; color: #fff; font: 12px/1.4 Consolas, monospace;
+      background: rgba(0, 0, 0, 0.45); padding: 5px 8px; border-radius: 6px; pointer-events: none; white-space: pre; }
+    #zone { position: fixed; bottom: 12px; right: 12px; color: var(--carta); font-size: 14px; background: var(--ombra);
+      padding: 6px 10px; border-radius: 6px; display: none; pointer-events: none; }
+    #mirino { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.8); pointer-events: none; display: none; }
+    #levetta { position: fixed; width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.6);
+      background: rgba(0, 0, 0, 0.18); display: none; pointer-events: none; }
+    #pomello { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255, 255, 255, 0.7); }
+    #strumenti { position: fixed; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 5; }
+    #strumenti button, #segnalazioni button { font: 14px Georgia, serif; color: var(--carta); background: var(--ombra);
+      border: 1px solid rgba(243, 234, 216, 0.5); border-radius: 6px; padding: 7px 11px; cursor: pointer; }
+    #avviso { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); max-width: 90vw; color: var(--carta);
+      background: var(--ombra); padding: 8px 14px; border-radius: 6px; font-size: 14px; display: none; z-index: 6; pointer-events: none; }
+    #segnalazioni { position: fixed; top: 52px; right: 10px; bottom: 10px; width: min(520px, calc(100vw - 20px)); overflow-y: auto;
+      background: rgba(28, 20, 12, 0.92); color: var(--carta); border-radius: 8px; padding: 10px; box-sizing: border-box;
+      display: none; z-index: 10; -webkit-user-select: text; user-select: text; touch-action: auto; }
+    #segnalazioni .testa { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+    #segnalazioni .testa b { margin-right: auto; font-size: 16px; }
+    #segnalazioni .voce { display: flex; gap: 8px; padding: 8px 0; border-top: 1px solid rgba(243, 234, 216, 0.2); }
+    #segnalazioni img { width: 200px; height: auto; border-radius: 4px; flex: none; }
+    #segnalazioni .dati { font: 12px/1.5 Consolas, monospace; flex: 1; min-width: 0; }
+    #segnalazioni textarea { width: 100%; box-sizing: border-box; min-height: 44px; margin: 4px 0; font: 13px Georgia, serif; }
+    #segnalazioni .dati button { margin-right: 4px; padding: 4px 9px; font-size: 13px; }
+    @media (max-width: 560px) { #segnalazioni img { width: 120px; } }
+
+  </style>
+</head>
+<body>
+  <div id="caricamento">
+    <h1>Il Borgo</h1>
+    <div id="barra"><div id="riempimento"></div></div>
+    <div id="stato">Caricamento della piazza e della Via Maestra...</div>
+  </div>
+  <div id="ingresso">
+    <h1>Porta Est</h1>
+    <p>Tocca o clicca per entrare nel borgo</p>
+    <div id="istruzioni">W A S D o frecce per camminare &middot; mouse per guardare &middot; Maiusc per correre &middot; Esc per uscire<br />
+      P salva una segnalazione (posizione + screenshot) &middot; L apre l'elenco</div>
+  </div>
+  <div id="levetta-zona" style="display:none"></div>
+  <div id="levetta"><div id="pomello"></div></div>
+  <div id="mirino"></div>
+  <div id="zone"></div>
+  <div id="strumenti"><button id="btn-segnala" title="Salva posizione e screenshot (P)">Segnala</button>
+    <button id="btn-elenco" title="Elenco delle segnalazioni (L)">Elenco</button></div>
+  <div id="avviso"></div>
+  <div id="segnalazioni"></div>
+  <div id="hud"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

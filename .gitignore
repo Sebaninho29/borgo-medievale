@@ -1,0 +1,26 @@
+# Scene, modelli e texture (pesanti; texture e modelli sono Poly Haven CC0, si riscaricano)
+*.blend
+*.blend1
+textures/
+modelli/
+
+# Rigenerabili o di lavoro
+backup/
+render/
+anteprime/
+.playwright-mcp/
+web/node_modules/
+web/dist/
+web/_esportazione/
+web/_tex_esportazione/
+web/public/citta/
+web/.netlify/
+
+# Appunti di pianificazione personali (non richiesti nel repository)
+PIANO_WEB.md
+
+# Sistema
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc

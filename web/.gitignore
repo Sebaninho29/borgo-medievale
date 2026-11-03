@@ -1,0 +1,7 @@
+node_modules/
+dist/
+_esportazione/
+_tex_esportazione/
+
+# Local Netlify folder
+.netlify

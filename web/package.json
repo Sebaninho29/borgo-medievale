@@ -1,0 +1,23 @@
+{
+  "name": "borgo-portfolio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "modello": "gltf-transform meshopt _esportazione/prototipo.glb public/modelli/prototipo.glb",
+    "citta": "node strumenti/prepara_citta.mjs",
+    "alberi": "node strumenti/prepara_alberi.mjs"
+  },
+  "dependencies": {
+    "n8ao": "^2.0.1",
+    "three": "^0.186.1",
+    "three-mesh-bvh": "^0.9.17"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
+    "vite": "^8.3.5"
+  }
+}
