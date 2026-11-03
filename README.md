@@ -3,7 +3,7 @@
 Un borgo murato generato proceduralmente in Blender (Python, `bmesh`) ed esplorabile in prima persona nel browser
 (three.js). Stile realistico con un tocco fantasy, mattina d'estate.
 
-**Sito:** _(link GitHub Pages, da aggiungere)_
+**Sito:** https://sebaninho29.github.io/borgo-medievale/
 
 ## Contenuto
 - `genera_quartiere.py` - generatore: ricostruisce da zero l'intera scena (strade, mura, porte, zone, edifici con un

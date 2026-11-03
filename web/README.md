@@ -44,7 +44,9 @@ jacaranda del sagrato). Anteprime: `anteprimelberi\` (griglia_prima_dopo.jpg, g
     npm run build        (sito in dist/, ~45 MB)
     npm run preview      (http://localhost:4173)
 
-Il sito usa percorsi relativi (`base: './'`): `dist/` si pubblica cosi' com'e' su Netlify o GitHub Pages.
+Il sito usa percorsi relativi (`base: './'`): `dist/` si pubblica cosi' com'e'. Online su GitHub Pages
+(https://sebaninho29.github.io/borgo-medievale/, ramo `gh-pages`): `bash web/strumenti/pubblica_pages.sh` dalla cartella
+del progetto, dopo `npm run build`. Solo quando l'utente chiede di pubblicare (il vecchio sito Netlify non si aggiorna piu').
 
 Comandi: clic per entrare, W A S D o frecce, mouse, Maiusc per correre, Esc per uscire.
 Segnalazioni: P salva posizione (coordinate Blender) + screenshot, L apre l'elenco (note, Vai, Scarica tutto in JSON).
